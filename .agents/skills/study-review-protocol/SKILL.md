@@ -16,6 +16,7 @@ Act as the stateless AI layer for the local review app. Minimize context and wor
 - For local data questions, query only required columns and use `LIMIT`.
 - For writes, prefer the app API; for analysis, read SQLite directly.
 - Output JSON only for protocol actions. No Markdown fences, no prose.
+- If `grade_answer` input provides `lookup.question_id` instead of a full question, fetch that single row from `questions` first.
 
 ## Local Project Locator
 
@@ -76,6 +77,14 @@ Question object:
 - `single_choice`: include `options` as `{key,text}[]`; `correct_answer` is the option key.
 - `true_false`: `correct_answer` is `"true"` or `"false"`.
 - `short_answer`: include `reference_answer`, `rubric` as `{point,score}[]`, and `max_score`.
+
+Lightweight `grade_answer` input may provide only:
+
+```json
+{"schema_version":"1.0","action":"grade_answer","lookup":{"database":"data/study.sqlite","table":"questions","question_id":"q_001"},"student_answer":"..."}
+```
+
+For that form, read only the matching `questions` row, parse `rubric_json` and `knowledge_points_json`, then grade normally.
 
 Grade result:
 

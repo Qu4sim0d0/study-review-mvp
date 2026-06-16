@@ -69,7 +69,7 @@ export default function PracticePage() {
 
     try {
       await navigator.clipboard.writeText(prompt);
-      setMessage('已复制完整阅卷提示，包含题目 ID、题干、参考答案、评分规则和你的答案。');
+      setMessage('已复制轻量阅卷请求，只包含题目 ID、数据库定位和你的答案。');
     } catch {
       setMessage('浏览器阻止了自动复制，请从下方文本框手动复制。');
     }
@@ -173,7 +173,7 @@ export default function PracticePage() {
             </button>
             {lastPrompt && (
               <div>
-                <p className="fieldLabel">复制给 Codex 的完整内容</p>
+                <p className="fieldLabel">复制给 Codex 的轻量定位请求</p>
                 <textarea className="jsonInput small" value={lastPrompt} readOnly spellCheck={false} />
               </div>
             )}
