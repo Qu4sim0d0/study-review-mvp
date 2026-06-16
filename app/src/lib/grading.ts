@@ -1,7 +1,7 @@
 import type { StoredQuestion } from '../types/schema';
 
 export function buildShortAnswerPrompt(question: StoredQuestion, studentAnswer: string) {
-  return {
+  const payload = {
     schema_version: '1.0',
     action: 'grade_answer',
     question: {
@@ -15,6 +15,8 @@ export function buildShortAnswerPrompt(question: StoredQuestion, studentAnswer: 
     },
     student_answer: studentAnswer
   };
+
+  return `使用 $study-review-protocol 阅卷。请只返回 grade_answer JSON，不要输出 Markdown 或额外解释。\n\n${JSON.stringify(payload, null, 2)}`;
 }
 
 export function normalizeAnswer(value: string) {

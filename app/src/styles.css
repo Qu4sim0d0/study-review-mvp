@@ -196,6 +196,35 @@ nav {
   font-weight: 600;
 }
 
+.fieldLabel {
+  margin: 4px 0 8px;
+  color: #53625a;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.answerResult {
+  margin-top: 16px;
+  border-radius: 8px;
+  padding: 14px;
+  border: 1px solid #d9dfd8;
+  background: #fbfcfb;
+}
+
+.answerResult p {
+  margin: 6px 0;
+}
+
+.answerResult.correct {
+  border-color: #92c7a7;
+  background: #f0faf4;
+}
+
+.answerResult.wrong {
+  border-color: #efb19b;
+  background: #fff6f2;
+}
+
 .questionBlock h3,
 .mistakeItem h3 {
   margin: 14px 0 18px;

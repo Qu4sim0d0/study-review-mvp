@@ -9,6 +9,13 @@ export default function PracticePage() {
   const [index, setIndex] = useState(0);
   const [answer, setAnswer] = useState('');
   const [gradeJson, setGradeJson] = useState('');
+  const [lastPrompt, setLastPrompt] = useState('');
+  const [objectiveResult, setObjectiveResult] = useState<{
+    isCorrect: boolean;
+    studentAnswer: string;
+    correctAnswer: string;
+    explanation: string;
+  } | null>(null);
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -29,6 +36,12 @@ export default function PracticePage() {
       const result = await apiPost<{ result: { is_correct: boolean } }>('/api/attempts/objective', {
         question_id: question.id,
         student_answer: answer
+      });
+      setObjectiveResult({
+        isCorrect: result.result.is_correct,
+        studentAnswer: answer,
+        correctAnswer: question.correct_answer ?? '',
+        explanation: question.explanation ?? ''
       });
       setMessage(result.result.is_correct ? '回答正确。' : '回答错误，已加入错题本。');
       setAnswer('');
@@ -52,8 +65,14 @@ export default function PracticePage() {
   async function copyPrompt() {
     if (!question) return;
     const prompt = buildShortAnswerPrompt(question, answer);
-    await navigator.clipboard.writeText(JSON.stringify(prompt, null, 2));
-    setMessage('已复制 grade_answer JSON，交给 Codex 使用 study-review-protocol 阅卷。');
+    setLastPrompt(prompt);
+
+    try {
+      await navigator.clipboard.writeText(prompt);
+      setMessage('已复制完整阅卷提示，包含题目 ID、题干、参考答案、评分规则和你的答案。');
+    } catch {
+      setMessage('浏览器阻止了自动复制，请从下方文本框手动复制。');
+    }
   }
 
   if (!question) {
@@ -78,7 +97,14 @@ export default function PracticePage() {
           <button className="secondary" onClick={() => setIndex(Math.max(0, index - 1))}>
             上一题
           </button>
-          <button className="secondary" onClick={() => setIndex(Math.min(questions.length - 1, index + 1))}>
+          <button
+            className="secondary"
+            onClick={() => {
+              setIndex(Math.min(questions.length - 1, index + 1));
+              setObjectiveResult(null);
+              setMessage('');
+            }}
+          >
             下一题
           </button>
         </div>
@@ -145,17 +171,32 @@ export default function PracticePage() {
               <Copy size={16} />
               复制给 Codex 阅卷
             </button>
+            {lastPrompt && (
+              <div>
+                <p className="fieldLabel">复制给 Codex 的完整内容</p>
+                <textarea className="jsonInput small" value={lastPrompt} readOnly spellCheck={false} />
+              </div>
+            )}
+            <p className="fieldLabel">Codex 返回的 grade_answer JSON</p>
             <textarea
               className="jsonInput small"
               value={gradeJson}
               onChange={(event) => setGradeJson(event.target.value)}
-              placeholder="粘贴 Codex 返回的 grade_answer JSON"
+              placeholder="把 Codex 返回的 JSON 粘贴到这里"
               spellCheck={false}
             />
             <button className="secondary" onClick={saveShortAnswerResult} disabled={!gradeJson.trim()}>
               <Send size={16} />
               保存阅卷结果
             </button>
+          </div>
+        )}
+
+        {objectiveResult && (
+          <div className={objectiveResult.isCorrect ? 'answerResult correct' : 'answerResult wrong'}>
+            <p><strong>你的答案：</strong>{objectiveResult.studentAnswer}</p>
+            <p><strong>正确答案：</strong>{objectiveResult.correctAnswer}</p>
+            <p><strong>解析：</strong>{objectiveResult.explanation}</p>
           </div>
         )}
 
