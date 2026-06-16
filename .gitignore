@@ -1,0 +1,9 @@
+app/node_modules/
+app/dist/
+app/**/*.js
+app/**/*.d.ts
+app/*.tsbuildinfo
+app/**/*.tsbuildinfo
+data/*.sqlite
+data/*.sqlite-*
+.DS_Store
