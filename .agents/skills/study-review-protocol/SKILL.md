@@ -1,6 +1,6 @@
 ---
 name: study-review-protocol
-description: Token-efficient protocol for a local study-review app. Use when Codex must generate quiz questions, extract a question bank, grade one short-answer response, explain one question, review a small mistake batch, or query the local SQLite question/mistake store for study feedback using strict JSON.
+description: Token-efficient protocol for a local study-review app. Use when Codex must generate quiz questions, extract a question bank, grade one short-answer response, explain one question, review or explain a small mistake batch, or query the local SQLite question/mistake store for study feedback.
 ---
 
 # Study Review Protocol
@@ -15,7 +15,7 @@ Act as the stateless AI layer for the local review app. Minimize context and wor
 - Do not summarize the whole course unless explicitly asked.
 - For local data questions, query only required columns and use `LIMIT`.
 - For writes, prefer the app API; for analysis, read SQLite directly.
-- Output JSON only for protocol actions. No Markdown fences, no prose.
+- Output JSON only for app-facing actions. If the user asks for student-facing explanation, use natural language.
 - If `grade_answer` input provides `lookup.question_id` instead of a full question, fetch that single row from `questions` first.
 
 ## Local Project Locator
@@ -51,7 +51,7 @@ Use exactly one action:
 - `extract_question_bank`: convert source text into importable questions.
 - `grade_answer`: grade one `short_answer`.
 - `explain_question`: explain one question.
-- `review_mistakes`: review a small mistake batch.
+- `review_mistakes`: review a small mistake batch for app-facing JSON, or explain mistakes in natural language when requested.
 
 ## Fixed Enums
 
@@ -98,7 +98,8 @@ Explanation result:
 
 Mistake review result:
 
-- Return `review.items[]` with `question_id`, `mistake_tags`, `feedback`, `suggested_action`.
+- For app-facing JSON, return `review.items[]` with `question_id`, `mistake_tags`, `feedback`, `suggested_action`.
+- For student-facing explanation, do not output JSON. Explain the knowledge points, likely weak spots, and next review steps concisely.
 
 ## Minimal Output Shapes
 
@@ -125,6 +126,8 @@ For `review_mistakes`:
 ```json
 {"schema_version":"1.0","action":"review_mistakes","review":{"items":[]}}
 ```
+
+Use this JSON shape only when the user or app explicitly asks for JSON.
 
 ## Behavior
 

@@ -46,9 +46,8 @@ export default function MistakesPage() {
 
   function buildCodexExport() {
     const payload = {
-      schema_version: '1.0',
-      action: 'review_mistakes',
-      request: '请基于这些错题讲解相关知识点，指出共同薄弱点，并给出下一轮复习建议。输出 review_mistakes JSON。',
+      purpose: 'knowledge_explanation',
+      request: '请用自然语言讲解这些错题涉及的知识点，指出共同薄弱点，并给出下一轮复习建议。不要输出 JSON。',
       mistakes: selectedMistakes.map((item) => ({
         question_id: item.question_id,
         type: item.question_type,
@@ -62,7 +61,7 @@ export default function MistakesPage() {
       }))
     };
 
-    return `使用 $study-review-protocol 分析以下错题，并讲解相关知识点：\n\n${JSON.stringify(payload, null, 2)}`;
+    return `使用 $study-review-protocol 分析以下错题。请给学生看的自然语言讲解，不要返回 JSON：\n\n${JSON.stringify(payload, null, 2)}`;
   }
 
   async function copyExport() {

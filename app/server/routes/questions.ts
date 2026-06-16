@@ -63,6 +63,16 @@ questionsRouter.get('/', (_req, res) => {
   res.json({ questions: rows });
 });
 
+questionsRouter.get('/unattempted', (_req, res) => {
+  const rows = db.prepare(`
+    SELECT *
+    FROM questions
+    WHERE id NOT IN (SELECT DISTINCT question_id FROM attempts)
+    ORDER BY created_at DESC
+  `).all();
+  res.json({ questions: rows });
+});
+
 questionsRouter.post('/import', (req, res) => {
   const result = importQuestionBank(req.body);
   if (!result.ok) {

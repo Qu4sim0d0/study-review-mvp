@@ -10,6 +10,7 @@ export default function PracticePage() {
   const [answer, setAnswer] = useState('');
   const [gradeJson, setGradeJson] = useState('');
   const [lastPrompt, setLastPrompt] = useState('');
+  const [currentCompleted, setCurrentCompleted] = useState(false);
   const [objectiveResult, setObjectiveResult] = useState<{
     isCorrect: boolean;
     studentAnswer: string;
@@ -19,7 +20,7 @@ export default function PracticePage() {
   const [message, setMessage] = useState('');
 
   useEffect(() => {
-    apiGet<QuestionsResponse>('/api/questions')
+    apiGet<QuestionsResponse>('/api/questions/unattempted')
       .then((data) => setQuestions(data.questions))
       .catch((error) => setMessage(error instanceof Error ? error.message : '读取题目失败'));
   }, []);
@@ -29,6 +30,25 @@ export default function PracticePage() {
     () => parseJsonField<{ key: string; text: string }[]>(question?.options_json, []),
     [question]
   );
+
+  function moveToNextQuestion() {
+    if (!question) return;
+    if (currentCompleted) {
+      setQuestions((current) => {
+        const next = current.filter((item) => item.id !== question.id);
+        setIndex((currentIndex) => Math.min(currentIndex, Math.max(0, next.length - 1)));
+        return next;
+      });
+    } else {
+      setIndex((currentIndex) => Math.min(questions.length - 1, currentIndex + 1));
+    }
+    setAnswer('');
+    setGradeJson('');
+    setLastPrompt('');
+    setObjectiveResult(null);
+    setCurrentCompleted(false);
+    setMessage('');
+  }
 
   async function submitObjective() {
     if (!question) return;
@@ -44,6 +64,7 @@ export default function PracticePage() {
         explanation: question.explanation ?? ''
       });
       setMessage(result.result.is_correct ? '回答正确。' : '回答错误，已加入错题本。');
+      setCurrentCompleted(true);
       setAnswer('');
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '提交失败');
@@ -55,6 +76,7 @@ export default function PracticePage() {
       const parsed = JSON.parse(gradeJson);
       await apiPost('/api/attempts/short-answer-result', parsed);
       setMessage('阅卷结果已保存。');
+      setCurrentCompleted(true);
       setAnswer('');
       setGradeJson('');
     } catch (error) {
@@ -94,16 +116,23 @@ export default function PracticePage() {
           </p>
         </div>
         <div className="pager">
-          <button className="secondary" onClick={() => setIndex(Math.max(0, index - 1))}>
+          <button
+            className="secondary"
+            onClick={() => {
+              setIndex(Math.max(0, index - 1));
+              setAnswer('');
+              setGradeJson('');
+              setLastPrompt('');
+              setObjectiveResult(null);
+              setCurrentCompleted(false);
+              setMessage('');
+            }}
+          >
             上一题
           </button>
           <button
             className="secondary"
-            onClick={() => {
-              setIndex(Math.min(questions.length - 1, index + 1));
-              setObjectiveResult(null);
-              setMessage('');
-            }}
+            onClick={moveToNextQuestion}
           >
             下一题
           </button>
